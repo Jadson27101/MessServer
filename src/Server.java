@@ -1,8 +1,11 @@
+import sample.Message;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 
 public class Server implements TCPConnectionListener{
+
     public static void main(String[] args) {
         new Server();
     }
@@ -26,12 +29,11 @@ public class Server implements TCPConnectionListener{
     @Override
     public synchronized void onConnectionReady(connectTCP connectTCP) {
         connections.add(connectTCP);
-        sendAllConnections("Client connected: " + connectTCP);
     }
 
     @Override
-    public synchronized void onReceiveString(connectTCP connectTCP, String value) {
-        sendAllConnections(value);
+    public synchronized void onReceiveString(connectTCP connectTCP, Message value) {
+        sendObject(value);
     }
 
     @Override
@@ -44,11 +46,15 @@ public class Server implements TCPConnectionListener{
     public synchronized void onException(connectTCP connectTCP, Exception e) {
         System.out.println("TCPConnections exception" + e);
     }
-    private void sendAllConnections(String val){
-        System.out.println(val);
-        final int size = connections.size();
-        for (int i = 0; i < size; i++){
-            connections.get(i).sendMessage(val);
+private void sendObject(Message message){
+    System.out.println(message.getName() + ": "+message.getMessage());
+    final int size = connections.size();
+    for (int i = 0; i < size; i++){
+        String s = String.valueOf(connections.get(i));
+            if(s.equals(String.valueOf(message.getClientIP()))) {
+                //System.out.println("flag");
+                connections.get(i).sendMessage(message);
+            }
         }
-    }
+}
 }

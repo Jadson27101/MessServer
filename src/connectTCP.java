@@ -1,3 +1,5 @@
+import sample.Message;
+
 import java.io.*;
 import java.net.Socket;
 import java.nio.Buffer;
@@ -9,11 +11,7 @@ public class connectTCP {
     private final BufferedReader in;
     private final BufferedWriter out;
     private final  TCPConnectionListener eventListener;
-
-    public connectTCP(TCPConnectionListener eventListener, String IP, int port) throws IOException{
-        this(eventListener, new Socket(IP, port));
-    }
-
+    
     public connectTCP(TCPConnectionListener eventListener,Socket socket) throws IOException {
         this.eventListener = eventListener;
         this.socket = socket;
@@ -25,11 +23,15 @@ public class connectTCP {
                 try {
                     eventListener.onConnectionReady(connectTCP.this);
                     while (!rxThread.isInterrupted()){
-                        String message = in.readLine();
-                        eventListener.onReceiveString(connectTCP.this, message);
+                        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+                        Message m = (Message) ois.readObject();
+                        //String message = in.readLine();
+                        eventListener.onReceiveString(connectTCP.this, m);
                     }
                 } catch (IOException e) {
                     eventListener.onException(connectTCP.this, e);
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
                 } finally {
                     eventListener.onDisconnect(connectTCP.this);
                 }
@@ -37,7 +39,7 @@ public class connectTCP {
         });
         rxThread.start();
     }
-    public synchronized void sendMessage(String value){
+    public synchronized void sendSysMessage(String value){
         try {
             out.write(value + "\r\n");
             out.flush();
@@ -46,6 +48,17 @@ public class connectTCP {
             disconnect();
         }
     }
+    public synchronized void sendMessage(Message message){
+        try {
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            objectOutputStream.writeObject(message);
+            objectOutputStream.flush();
+            //objectOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public synchronized void disconnect(){
         rxThread.interrupt();
         try {
@@ -56,6 +69,6 @@ public class connectTCP {
     }
     @Override
     public String toString(){
-       return "TCPConnection: " + socket.getInetAddress() + " " + socket.getPort();
+       return String.valueOf(socket.getInetAddress());
     }
 }

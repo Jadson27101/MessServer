@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/CryptMess.iml" filepath="$PROJECT_DIR$/CryptMess.iml" />
+      <module fileurl="file://$PROJECT_DIR$/MessServer.iml" filepath="$PROJECT_DIR$/MessServer.iml" />
     </modules>
   </component>
 </project>
